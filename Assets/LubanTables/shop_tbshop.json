@@ -1,0 +1,32 @@
+[
+  {
+    "star": 1,
+    "upgrade_cost": 6,
+    "refresh_cost": 1
+  },
+  {
+    "star": 2,
+    "upgrade_cost": 7,
+    "refresh_cost": 1
+  },
+  {
+    "star": 3,
+    "upgrade_cost": 8,
+    "refresh_cost": 1
+  },
+  {
+    "star": 4,
+    "upgrade_cost": 10,
+    "refresh_cost": 1
+  },
+  {
+    "star": 5,
+    "upgrade_cost": 10,
+    "refresh_cost": 1
+  },
+  {
+    "star": 6,
+    "upgrade_cost": -1,
+    "refresh_cost": 1
+  }
+]

@@ -8,7 +8,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using QFramework;
 using DG.Tweening;
-using UnityEngine.EventSystems;
 
 namespace Battlegrounds
 {
@@ -19,7 +18,6 @@ namespace Battlegrounds
     [SerializeField, Header("每张卡牌动画间隔时间")] private float delayBetweenCards;
     [SerializeField, Header("卡牌宽度")] private float cardWidth;
     [SerializeField, Header("卡牌起始生成位置y轴偏移")] private float cardStartingYOffset;
-    private List<CardUIItem> cardUIItemCache = new List<CardUIItem>();
     private static int _currentCardCount = 0;
     private void Awake()
     {
@@ -31,53 +29,52 @@ namespace Battlegrounds
     {
       // CardUIItem.Instantiate()
       //           .Parent(this)
-      //           .LocalPosition(Vector3.zero + new Vector3(0, cardStartingYOffset, 0))
+      //           .LocalPosition(Vector3.zero)
       //           .LocalScale(Vector3.one)
       //           .LocalRotation(Quaternion.identity)
-      //           .InitCardDisplay(cardData); 
+      //           .InitCardDisplay(cardData);
 
-      CardUIItem cardMono = Instantiate(CardUIItem);
-
-      GameObject cardgo = cardMono.gameObject;
-      cardgo.transform.SetParent(transform, false);
-      cardgo.transform.localPosition = Vector3.zero + new Vector3(0, cardStartingYOffset, 0);
-      cardgo.transform.localScale = Vector3.one;
-      cardgo.transform.localRotation = Quaternion.identity;
+      CardUIItem cardMono = Instantiate(CardUIItem, transform.position + new Vector3(0, cardStartingYOffset, 0), transform.rotation, transform);
       //默认显示背面(配合动画)
-      cardgo.transform.Find("CardBack").gameObject.SetActive(true);
+      cardMono.transform.Find("CardBack").gameObject.SetActive(true);
 
-      CardUIItem.InitCardDisplay(cardData);
+      cardMono.InitCardDisplay(cardData);
 
-      //添加缓存
-      cardUIItemCache.Add(CardUIItem);
       _currentCardCount++;
 
-      DealCard(cardgo, delayBetweenCards, GetCardPosition(_currentCardCount - 1));
+      //默认显示背面(配合动画)
+      cardMono.transform.Find("CardBack").gameObject.SetActive(true);
+
+      DealCard(cardMono.gameObject);
     }
 
     /// <summary>
     /// 这是游戏刚开始发牌的动画,需要一个
     /// </summary>
     /// <param name="card">卡牌游戏对象</param>
-    /// <param name="delay">延迟时间</param>
-    /// <param name="targetPos">目标位置</param>
-    private void DealCard(GameObject card, float delay, Vector3 targetPos)
+    /// <param name="isFill">是否需要翻转</param>
+    public void DealCard(GameObject card, bool isFill = true)
     {
       Quaternion initialRotation = card.transform.rotation;
 
       Sequence sequence = DOTween.Sequence();
-
-      sequence.AppendInterval(delay);
-
-      sequence.Append(card.transform.DOMove(targetPos, moveDuration));
-      sequence.Append(card.transform.DORotate(new Vector3(0, 90, 0), dealDuration / 2));
-      // 重新排序
-      for (int i = 0; i < cardUIItemCache.Count; i++)
+      //延时
+      sequence.AppendInterval(delayBetweenCards);
+      //更新位置 从手牌区中央开始移动到计算位置
+      for (int i = 0; i < transform.childCount; i++)
       {
-        sequence.Join(cardUIItemCache[i].transform.DOMove(GetCardPosition(i), moveDuration));
+        sequence.Join(transform.GetChild(i).transform.DOMove(GetCardPosition(i), moveDuration));
       }
-      sequence.AppendCallback(() => card.transform.Find("CardBack").gameObject.SetActive(false));
-      sequence.Append(card.transform.DORotate(initialRotation.eulerAngles, dealDuration / 2));
+
+      if (isFill)
+      {
+        //旋转一半,看不见
+        sequence.Append(card.transform.DORotate(new Vector3(0, 90, 0), dealDuration / 2));
+        //显示正面
+        sequence.AppendCallback(() => card.transform.Find("CardBack").gameObject.SetActive(false));
+        //旋转回来 看的见
+        sequence.Append(card.transform.DORotate(initialRotation.eulerAngles, dealDuration / 2));
+      }
 
     }
 
@@ -91,6 +88,15 @@ namespace Battlegrounds
       float cardX = startingX + index * cardWidth;
       return new Vector3(cardX, transform.position.y, transform.position.z);
     }
+
+    //清除指定卡牌缓存
+    public void DestroyCard(CardUIItem cardUIItem)
+    {
+      Destroy(cardUIItem.gameObject);
+      _currentCardCount--;
+    }
+
+
     protected override void OnBeforeDestroy()
     {
     }

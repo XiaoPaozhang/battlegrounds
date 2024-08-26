@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using DG.Tweening;
 using System;
 using System.Collections.Specialized;
+using Unity.VisualScripting;
+using UnityEngine.Networking;
 
 namespace Battlegrounds
 {
@@ -29,17 +31,10 @@ namespace Battlegrounds
       playerInfoData.CurrentMp.RegisterWithInitValue(UpdateCurrentMp).UnRegisterWhenGameObjectDestroyed(this);
       playerInfoData.MaxMp.RegisterWithInitValue(UpdateMaxMp).UnRegisterWhenGameObjectDestroyed(this);
       playerInfoData.HandCards.CollectionChanged += OnHandCardsChanged;
+      //监听ui交互
+      turnBtn.onClick.AddListener(TurnBtnClick);
       //监听拖拽事件
       TypeEventSystem.Global.Register<EndDragMinionEvent>(OnEndDragMinion).UnRegisterWhenGameObjectDestroyed(this);
-      turnBtn.onClick.AddListener(TurnBtnClick);
-
-      // 生成卡牌id
-      // ITableLoader tableLoader = this.GetUtility<ITableLoader>();
-      // cfg.Card card = tableLoader.Tables.TbCard.Get(10002);
-
-      // 实例化卡牌预制体
-      // var go = MinionSlot.InitMinionUI(new MinionData(new MinionCardData(card)));
-      // go.transform.SetParent(MinionSlot.transform, false);
     }
 
     //手牌变更事件
@@ -78,6 +73,10 @@ namespace Battlegrounds
         "拖拽的随从数据为空".LogError();
         return;
       }
+
+      //是否是商店拿出的卡
+      bool IsBelongsToShop = @event.MinionData.BelongsTo == IMinionData.UiType.Shop;
+
       RectTransform handArea = HandCardSlot.transform as RectTransform;
       // 判断是否在可放置区域
       bool isSuccess = RectTransformUtility.RectangleContainsScreenPoint(
@@ -86,7 +85,7 @@ namespace Battlegrounds
           @event.EventData.pressEventCamera
           );
 
-      if (isSuccess)
+      if (IsBelongsToShop && isSuccess)
       {
         // 获取卡牌配置表数据
         cfg.Card card = this.GetUtility<ITableLoader>().Tables.TbCard.Get(@event.MinionData.Id);
@@ -103,7 +102,16 @@ namespace Battlegrounds
         @event.MinionUIItem.gameObject.Parent(@event.ParentTf);
       };
     }
-
+    //放置随从
+    public void PlaceMinion(List<IMinionCardData> minionCardData)
+    {
+      List<IMinionData> minionDatas = new List<IMinionData>();
+      for (int i = 0; i < minionCardData.Count; i++)
+      {
+        minionDatas.Add(new MinionData(minionCardData[i]));
+      }
+      MinionSlot.UpdateMinionSlot(minionDatas);
+    }
     protected override void OnOpen(IUIData uiData = null)
     {
     }
@@ -140,30 +148,11 @@ namespace Battlegrounds
       ManaSlot.UpdateMpDisplay(playerInfoData.CurrentMp.Value);
     }
 
-    //移除卡牌显示效果
-    // private void CardRemoveDisplay(Card card)
-    // {
-    //   // 移除卡牌
-    //   cardsCache.Remove(card);
-    //   _currentCardCount--;
-
-    //   // 更新卡牌位置
-    //   UpdateCardTransformDisplay();
-    // }
-
     public void showMana()
     {
       //显示法力值显示
       manaTxt.gameObject.SetActive(true);
     }
-
-    // //更新随从显示
-    // public void UpdateMinionDisplay(MinionData minionData)
-    // {
-    //   Minion minion = Instantiate(minionPrefabs);
-    //   minion.Init(minionData);
-    //   minion.transform.SetParent(minionMgrTf);
-    // }
 
     //回合结束按钮点击事件
     private void TurnBtnClick()

@@ -30,9 +30,28 @@ namespace Battlegrounds
       refreshBtn.onClick.AddListener(OnRefreshBtnClick);
       lockBtn.onClick.AddListener(OnLockBtnClick);
       TypeEventSystem.Global.Register<UpdateGoodsEvent>(OnAddGoods).UnRegisterWhenGameObjectDestroyed(this);
+      TypeEventSystem.Global.Register<EndDragMinionEvent>(OnEndDragMinion).UnRegisterWhenGameObjectDestroyed(this);
 
       //摆放随从
       MinionSlot.UpdateMinionSlot(goodsMinionDatas);
+    }
+
+    private void OnEndDragMinion(EndDragMinionEvent @event)
+    {
+
+      // 判断是否在垃圾回收区域
+      bool AtRecoveryArea = RectTransformUtility.RectangleContainsScreenPoint(
+          recoveryArea,
+          @event.EventData.position,
+          @event.EventData.pressEventCamera
+          );
+
+      //拖拽到随从区域
+      if (AtRecoveryArea)
+      {
+        "随从卖出".LogInfo();
+        @event.MinionUIItem.gameObject.DestroySelf();
+      }
     }
 
     private void OnAddGoods(UpdateGoodsEvent e)
@@ -45,7 +64,9 @@ namespace Battlegrounds
       //摆放随从
       MinionSlot.UpdateMinionSlot(e.MinionDatas);
     }
-
+    private void OnEndDragCard(EndDragCardEvent @event)
+    {
+    }
     private void OnLockBtnClick()
     {
       "锁住".LogInfo();

@@ -14,6 +14,9 @@ namespace Battlegrounds
   , IPointerEnterHandler, IPointerExitHandler, IDragHandler, IBeginDragHandler, IEndDragHandler
   {
     private RectTransform rectTransform;
+    private int _index;
+    private IBaseCardData baseCardData;
+    private Transform parentTf;
 
     private void Awake()
     {
@@ -26,6 +29,7 @@ namespace Battlegrounds
     /// <param name = "minionCardData" > 随从数据 </ param >
     public void InitCardDisplay(IBaseCardData baseCardData)
     {
+      this.baseCardData = baseCardData;
       if (baseCardData is IMinionCardData minionCardData)
       {
         minionCardData.Star.RegisterWithInitValue(OnStarChanged);
@@ -63,7 +67,7 @@ namespace Battlegrounds
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-      borderLine.enabled = true;
+      borderLine.color = Color.green;
 
       // 如果已经有动画正在运行，则先清除
       // if (tweenSequence != null && tweenSequence.IsPlaying())
@@ -71,19 +75,19 @@ namespace Battlegrounds
       //   tweenSequence.Kill();
       // }
 
-      // // 创建一个新的动画序列
-      // Sequence tweenSequence = DOTween.Sequence();
-
-      // // 放大动画
-      // tweenSequence.Append(rectTransform.DOScale(1.5f, 0.15f));
-
-      // // 设置渲染模式为置顶
-      // tweenSequence.onComplete += () => { rectTransform.SetAsLastSibling(); };
+      //记录当前的渲染顺序
+      _index = transform.GetSiblingIndex();
+      // 设置渲染模式为置顶
+      rectTransform.SetAsLastSibling();
+      // 创建一个新的动画序列
+      Sequence tweenSequence = DOTween.Sequence();
+      // 放大动画
+      tweenSequence.Append(rectTransform.DOScale(1.5f, 0.15f));
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
-      borderLine.enabled = false;
+      borderLine.color = Color.white;
 
       // 如果已经有动画正在运行，则先清除
       // if (tweenSequence != null && tweenSequence.IsPlaying())
@@ -91,30 +95,41 @@ namespace Battlegrounds
       //   tweenSequence.Kill();
       // }
 
+      // 恢复正常的渲染顺序
+      rectTransform.SetSiblingIndex(_index);
       // 创建一个新的动画序列
-      // Sequence tweenSequence = DOTween.Sequence();
+      Sequence tweenSequence = DOTween.Sequence();
+      // 恢复原始大小
+      tweenSequence.Append(rectTransform.DOScale(1f, 0.25f));
 
-      // // 恢复原始大小
-      // tweenSequence.Append(rectTransform.DOScale(1f, 0.25f));
-
-      // // 恢复正常的渲染顺序
-      // tweenSequence.onComplete += () => { rectTransform.SetAsLastSibling(); };
     }
 
     public void OnBeginDrag(PointerEventData eventData)
     {
+      parentTf = transform.parent;
 
+      if (baseCardData is IMinionCardData minionCardData)
+      {
+        Transform dragPanelTf = UIKit.GetPanel<DragPanel>().transform;
+        transform.SetParent(dragPanelTf);
+        transform.position = Input.mousePosition;
+      }
     }
-
     public void OnDrag(PointerEventData eventData)
     {
-
+      //拖拽
+      transform.position = Input.mousePosition;
     }
-
     public void OnEndDrag(PointerEventData eventData)
     {
-
+      TypeEventSystem.Global.Send(new EndDragCardEvent(
+        eventData,
+        baseCardData,
+        this,
+        parentTf
+        ));
     }
+
 
     protected override void OnBeforeDestroy()
     {

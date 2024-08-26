@@ -488,11 +488,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveDuration: 0.2
-  dealDuration: 0.1
+  dealDuration: 0.2
   delayBetweenCards: 0.1
   cardWidth: 170
   cardStartingYOffset: 100
-  cardPrefab: {fileID: 0}
   CardUIItem: {fileID: -7775988360578981958, guid: 7facbcf8fe3977e44b7c775bf1c32547, type: 3}
 --- !u!1 &983989537
 GameObject:

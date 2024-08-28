@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using cfg;
 using QFramework;
 
@@ -19,8 +20,7 @@ namespace Battlegrounds
     ShopModel UpgradeStore();
     ShopModel RefreshStore();
     bool IsMaxStar();
-    List<IMinionData> Goods { get; }
-    List<IMinionData> UpdateGoods(IMinionCardData[] cards);
+    ObservableCollection<IMinionData> Goods { get; }
   }
   public class ShopModel : AbstractModel, IShopModel
   {
@@ -29,7 +29,7 @@ namespace Battlegrounds
     public BindableProperty<int> Star { get; private set; } = new BindableProperty<int>(); //星级
     public int RefreshCost { get; private set; } //刷新所需要的金币数量
     public int UpgradeCost { get; private set; } //升级所需要的金币数量
-    public List<IMinionData> Goods { get; private set; } = new List<IMinionData>(); //商品随从列表
+    public ObservableCollection<IMinionData> Goods { get; private set; } = new ObservableCollection<IMinionData>(); //商品随从列表
     public ShopModel InitializeShop(int star)
     {
       _tbShop = this.GetUtility<ITableLoader>().Tables.TbShop;
@@ -76,25 +76,6 @@ namespace Battlegrounds
     /// </summary>
     /// <returns></returns>
     public bool IsMaxStar() => _tbShop.Get(Star.Value).UpgradeCost < 0;
-    /// <summary>
-    /// 更新商品列表
-    /// </summary>
-    /// <param name="cards"></param>
-    /// <returns>商品列表</returns>
-    public List<IMinionData> UpdateGoods(IMinionCardData[] cards)
-    {
-      ClearGoods();
-
-      foreach (var minionCardData in cards)
-      {
-        Goods.Add(new MinionData(minionCardData)
-        {
-          BelongsTo = IMinionData.UiType.Shop
-        });
-      }
-      TypeEventSystem.Global.Send(new UpdateGoodsEvent(Goods));
-      return Goods;
-    }
     /// <summary>
     /// 清空商品列表
     /// </summary>

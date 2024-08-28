@@ -32,10 +32,10 @@ namespace Battlegrounds
     public BindableProperty<int> Atk { get; set; } = new BindableProperty<int>();
     public BindableProperty<string> Icon { get; set; } = new BindableProperty<string>();
     public BindableProperty<int> Star { get; set; } = new BindableProperty<int>();
-    public MinionData(IMinionCardData minionCardData)
+    public MinionData(IMinionCardData minionCardData, IMinionData.UiType belongsTo = IMinionData.UiType.None)
     {
       Id = minionCardData.CardId;
-      BelongsTo = IMinionData.UiType.None;
+      BelongsTo = belongsTo;
       Name.Value = minionCardData.Name.Value;
       MaxHp.Value = minionCardData.MaxHp.Value;
       CurrentHp.Value = minionCardData.CurrentHp.Value;

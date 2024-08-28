@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using QFramework;
 using UnityEngine;
 
@@ -14,7 +15,7 @@ namespace Battlegrounds
     T[] DrawCards<T>(int count) where T : class, IBaseCardData;
     IBaseCardData[] DrawAllCards();
     T[] DrawAllCards<T>() where T : class, IBaseCardData;
-    DeckModel RefreshDeck(List<IMinionData> minionDatas);
+    DeckModel AddCardToDeck(List<int> cardIds, int count = 1);
     DeckModel ClearDeck();
   }
 
@@ -72,14 +73,14 @@ namespace Battlegrounds
       AddCardToDeck(cardIds, 3);
       return this;
     }
-    private void AddCardToDeck(List<int> cardIds, int count = 1)
+    public DeckModel AddCardToDeck(List<int> cardIds, int count = 1)
     {
       foreach (int cardId in cardIds)
       {
         cfg.Card card = _cardsDict[cardId];
         if (!_cardFactory.ContainsKey((CardType)card.CardType))
         {
-          throw new NotSupportedException($"不支持的卡牌类型 {card.CardType}");
+          $"不支持的卡牌类型 {card.CardType}".LogInfo();
         }
 
         Func<cfg.Card, IBaseCardData> factoryMethod = _cardFactory[(CardType)card.CardType];
@@ -89,6 +90,7 @@ namespace Battlegrounds
           _baseCardDatas.Add(factoryMethod(card));
         }
       }
+      return this;
     }
     /// <summary>
     /// 洗牌
@@ -182,12 +184,12 @@ namespace Battlegrounds
     /// </summary>
     /// <param name="minionDatas">回收的随从数据</param>
     /// <returns></returns>
-    public DeckModel RefreshDeck(List<IMinionData> minionDatas)
+    public DeckModel RefreshDeck(ObservableCollection<IMinionData> minionDatas)
     {
       List<int> cardIds = new List<int>();
-      foreach (var minionData in minionDatas)
+      for (int i = 0; i < minionDatas.Count; i++)
       {
-        cardIds.Add(minionData.Id);
+        cardIds[i] = minionDatas[i].Id;
       }
       AddCardToDeck(cardIds);
       ShuffleDeck();

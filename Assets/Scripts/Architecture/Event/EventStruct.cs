@@ -8,19 +8,6 @@ namespace Battlegrounds
 {
   // ----------------整个项目所有事件
 
-  public struct UpdateGoodsEvent
-  {
-    public List<IMinionData> MinionDatas { get; private set; }
-    /// <summary>
-    /// 更新商品事件
-    /// </summary>
-    /// <param name="minionDatas">更新的随从商品数据</param>
-    public UpdateGoodsEvent(List<IMinionData> minionDatas)
-    {
-      this.MinionDatas = minionDatas;
-    }
-  }
-
   public struct EndDragMinionEvent
   {
     public PointerEventData EventData { get; private set; }

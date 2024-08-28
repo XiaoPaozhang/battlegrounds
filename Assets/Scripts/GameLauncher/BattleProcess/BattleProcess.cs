@@ -7,8 +7,8 @@ namespace Battlegrounds
   /// <summary>
   /// 战斗流程
   /// </summary>
-  [MonoSingletonPath("GameMainProcess/BattleProcess")]
-  public partial class BattleProcess : MonoSingleton<BattleProcess>
+  [MonoSingletonPath("[GameLauncher]/[BattleProcess]")]
+  public class BattleProcess : MonoSingleton<BattleProcess>
   {
     public FSM<States> FSM = new FSM<States>();
     public enum States
@@ -38,14 +38,31 @@ namespace Battlegrounds
 
     }
 
+    private void Update()
+    {
+      FSM.Update();
+    }
+
+    private void FixedUpdate()
+    {
+      FSM.FixedUpdate();
+    }
+
     private void OnGUI()
     {
+      FSM.OnGUI();
       GUI.Label(new Rect(100, 100, 200, 20), "Current State: " + FSM.CurrentStateId);
+    }
+
+    protected override void OnDestroy()
+    {
+      FSM.Clear();
     }
 
     public void Destroy()
     {
-      this.gameObject.DestroySelf();
+      Destroy(this);
+      Destroy(this.gameObject);
     }
   }
 }

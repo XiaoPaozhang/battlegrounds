@@ -3,6 +3,9 @@ using UnityEngine.UI;
 using QFramework;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.Linq;
 
 namespace Battlegrounds
 {
@@ -26,19 +29,52 @@ namespace Battlegrounds
       shopModel = this.GetModel<IShopModel>();
 
       shopModel.Star.RegisterWithInitValue(OnStarChanged);
+      shopModel.Goods.CollectionChanged += OnGoodsChanged;
+
       upgradeBtn.onClick.AddListener(OnUpgradeBtnClick);
       refreshBtn.onClick.AddListener(OnRefreshBtnClick);
       lockBtn.onClick.AddListener(OnLockBtnClick);
-      TypeEventSystem.Global.Register<UpdateGoodsEvent>(OnAddGoods).UnRegisterWhenGameObjectDestroyed(this);
       TypeEventSystem.Global.Register<EndDragMinionEvent>(OnEndDragMinion).UnRegisterWhenGameObjectDestroyed(this);
 
       //摆放随从
-      MinionSlot.UpdateMinionSlot(goodsMinionDatas);
+      MinionSlot.UpdateMinionSlot(shopModel.Goods);
+    }
+
+    private void OnGoodsChanged(object sender, NotifyCollectionChangedEventArgs e)
+    {
+      if (e.NewItems == null) return;
+      //遍历新值
+      // for (int i = 0; i < e.NewItems.Count; i++)
+      // {
+      // switch (e.Action)
+      // {
+      //   case NotifyCollectionChangedAction.Add:
+      //     LogKit.I($"Item added: {item}");
+      //     break;
+      //   case NotifyCollectionChangedAction.Remove:
+      //     LogKit.I($"Item removed: {item}");
+      //     break;
+      //   case NotifyCollectionChangedAction.Replace:
+      //     LogKit.I($"Item replaced.");
+      //     break;
+      //   case NotifyCollectionChangedAction.Move:
+      //     LogKit.I($"Item moved.");
+      //     break;
+      //   case NotifyCollectionChangedAction.Reset:
+      //     LogKit.I("The collection was reset.");
+      //     break;
+      // }
+      // }
+      //摆放随从
+      MinionSlot.UpdateMinionSlot((ObservableCollection<IMinionData>)sender);
+
+
     }
 
     private void OnEndDragMinion(EndDragMinionEvent @event)
     {
-
+      //判断是否为玩家的随从
+      bool IsPlayerMinion = @event.MinionData.BelongsTo == IMinionData.UiType.Player;
       // 判断是否在垃圾回收区域
       bool AtRecoveryArea = RectTransformUtility.RectangleContainsScreenPoint(
           recoveryArea,
@@ -46,27 +82,17 @@ namespace Battlegrounds
           @event.EventData.pressEventCamera
           );
 
-      //拖拽到随从区域
-      if (AtRecoveryArea)
+      if (IsPlayerMinion && AtRecoveryArea)
       {
-        "随从卖出".LogInfo();
+        // "随从卖出".LogInfo();
+        IPlayerInfo playerInfo = this.GetModel<IPlayerInfoModel>().PlayerInfos[30001];
+        var MinionsRemove = playerInfo.Minions.First(minion => minion.Id == @event.MinionData.Id);
+        if (MinionsRemove != null) playerInfo.Minions.Remove(MinionsRemove);
+
         @event.MinionUIItem.gameObject.DestroySelf();
       }
     }
 
-    private void OnAddGoods(UpdateGoodsEvent e)
-    {
-      if (e.MinionDatas == null)
-      {
-        "更新商品事件没有接收到数据".LogWarning();
-        return;
-      }
-      //摆放随从
-      MinionSlot.UpdateMinionSlot(e.MinionDatas);
-    }
-    private void OnEndDragCard(EndDragCardEvent @event)
-    {
-    }
     private void OnLockBtnClick()
     {
       "锁住".LogInfo();
@@ -92,11 +118,15 @@ namespace Battlegrounds
       // 刷新随从,重新抽取
       IMinionCardData[] minionCardDatas =
       this.GetModel<IDeckModel>()
-          .RefreshDeck(goodsMinionDatas)
+          .AddCardToDeck(shopModel.Goods.Select(goods => goods.Id).ToList())
+          .ShuffleDeck()
           .DrawCards<IMinionCardData>(drawCount);
 
       //商店添加随从
-      this.GetModel<IShopModel>().UpdateGoods(minionCardDatas);
+      foreach (IMinionCardData minionCardData in minionCardDatas)
+      {
+        shopModel.Goods.Add(new MinionData(minionCardData, IMinionData.UiType.Shop));
+      }
     }
 
     private void OnUpgradeBtnClick()
@@ -131,6 +161,7 @@ namespace Battlegrounds
 
     protected override void OnClose()
     {
+      shopModel.Goods.CollectionChanged -= OnGoodsChanged;
     }
 
     public IArchitecture GetArchitecture()

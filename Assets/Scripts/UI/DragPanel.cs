@@ -26,11 +26,9 @@ namespace Battlegrounds
     public void OnEndDragCard(EndDragCardEvent @event)
     {
       PlayerInfoPanel playerInfoPanel = UIKit.GetPanel<PlayerInfoPanel>();
-      ShopInfoPanel shopInfoPanel = UIKit.GetPanel<ShopInfoPanel>();
 
       RectTransform handArea = playerInfoPanel.HandCardSlot.transform as RectTransform;
       RectTransform minionArea = playerInfoPanel.MinionSlot.transform as RectTransform;
-      RectTransform recoveryAreaRectTf = shopInfoPanel.recoveryArea.transform as RectTransform;
       // 判断是否在手牌区域
       bool AtHandArea = RectTransformUtility.RectangleContainsScreenPoint(
           handArea,
@@ -48,10 +46,12 @@ namespace Battlegrounds
       {
         // "放置随从".LogInfo();
         IPlayerInfoModel playerInfoModel = this.GetModel<IPlayerInfoModel>();
-        playerInfoModel.AddMinion(minionCardData, 30001);
-        ;
+        playerInfoModel.AddMinion(new MinionData(minionCardData, IMinionData.UiType.Player), 30001);
+
         playerInfoPanel.PlaceMinion(playerInfoModel.PlayerInfos[30001].Minions.ToList());
         playerInfoPanel.HandCardSlot.DestroyCard(@event.CardUIItem);
+
+        playerInfoPanel.HandCardSlot.DealCard(@event.CardUIItem.gameObject, false);
       }
       // 如果拖拽的是法术卡,且拖拽至手牌区外
       else if (@event.BaseCardData is ISpellCardData && !AtHandArea)
@@ -64,7 +64,7 @@ namespace Battlegrounds
       }
       else
       {
-        "卡牌归位".LogInfo();
+        // "卡牌归位".LogInfo();
 
         // 卡牌不在可放置区域, 回到原来的位置
         @event.CardUIItem.transform.Parent(@event.ParentTf);

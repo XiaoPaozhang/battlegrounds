@@ -15,7 +15,7 @@ namespace Battlegrounds
     BindableProperty<int> CurrentMp { get; }
     BindableProperty<int> Star { get; }
     ObservableCollection<IBaseCardData> HandCards { get; }
-    ObservableCollection<IMinionCardData> Minions { get; }
+    ObservableCollection<IMinionData> Minions { get; }
   }
 
   public class PlayerInfoData : IPlayerInfo, ICanGetUtility
@@ -35,7 +35,7 @@ namespace Battlegrounds
     // 拥有的手牌
     public ObservableCollection<IBaseCardData> HandCards { get; } = new ObservableCollection<IBaseCardData>();
     // 场地上的随从
-    public ObservableCollection<IMinionCardData> Minions { get; } = new ObservableCollection<IMinionCardData>();
+    public ObservableCollection<IMinionData> Minions { get; } = new ObservableCollection<IMinionData>();
 
     public PlayerInfoData(int playerId = 30001)
     {
@@ -83,7 +83,7 @@ namespace Battlegrounds
     Dictionary<int, IPlayerInfo> PlayerInfos { get; }
     IPlayerInfo CreatePlayerInfo(int playerId);
     void AddHandCard(IBaseCardData cardData, int playerId);
-    void AddMinion(IMinionCardData minionData, int playerId);
+    void AddMinion(IMinionData minionData, int playerId);
   }
 
   public class PlayerInfoModel : AbstractModel, IPlayerInfoModel
@@ -113,7 +113,7 @@ namespace Battlegrounds
       PlayerInfos[playerId].HandCards.Add(cardData);
     }
 
-    public void AddMinion(IMinionCardData minionData, int playerId)
+    public void AddMinion(IMinionData minionData, int playerId)
     {
       PlayerInfos[playerId].Minions.Add(minionData);
     }

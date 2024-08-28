@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using QFramework;
+using System.Collections.ObjectModel;
 
 namespace Battlegrounds
 {
@@ -19,7 +20,7 @@ namespace Battlegrounds
     /// 更新随从槽
     /// </summary>
     /// <param name="minionData">随从数据</param>
-    public void UpdateMinionSlot(List<IMinionData> minionDatas)
+    public void UpdateMinionSlot(ObservableCollection<IMinionData> minionDatas)
     {
       // 先清空之前的随从UI
       foreach (Transform child in transform)

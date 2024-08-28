@@ -49,33 +49,44 @@ namespace Battlegrounds
     }
 
     /// <summary>
-    /// 这是游戏刚开始发牌的动画,需要一个
+    /// 发牌动画
     /// </summary>
     /// <param name="card">卡牌游戏对象</param>
     /// <param name="isFill">是否需要翻转</param>
-    public void DealCard(GameObject card, bool isFill = true)
+    public void DealCard(GameObject card, bool faceUp = true)
     {
-      Quaternion initialRotation = card.transform.rotation;
-
       Sequence sequence = DOTween.Sequence();
       //延时
       sequence.AppendInterval(delayBetweenCards);
-      //更新位置 从手牌区中央开始移动到计算位置
+      sequence = UpdateAllCardPosition(sequence);
+
+      //翻转卡牌
+      if (faceUp)
+      {
+        RotateCard(sequence, card);
+      }
+    }
+
+    //更新位置 从手牌区中央开始移动到计算位置
+    public Sequence UpdateAllCardPosition(Sequence sequence)
+    {
       for (int i = 0; i < transform.childCount; i++)
       {
         sequence.Join(transform.GetChild(i).transform.DOMove(GetCardPosition(i), moveDuration));
       }
+      return sequence;
+    }
 
-      if (isFill)
-      {
-        //旋转一半,看不见
-        sequence.Append(card.transform.DORotate(new Vector3(0, 90, 0), dealDuration / 2));
-        //显示正面
-        sequence.AppendCallback(() => card.transform.Find("CardBack").gameObject.SetActive(false));
-        //旋转回来 看的见
-        sequence.Append(card.transform.DORotate(initialRotation.eulerAngles, dealDuration / 2));
-      }
-
+    public Sequence RotateCard(Sequence sequence, GameObject card)
+    {
+      Quaternion initialRotation = card.transform.rotation;
+      //旋转一半,看不见
+      sequence.Append(card.transform.DORotate(new Vector3(0, 90, 0), dealDuration / 2));
+      //显示正面
+      sequence.AppendCallback(() => card.transform.Find("CardBack").gameObject.SetActive(false));
+      //旋转回来 看的见
+      sequence.Append(card.transform.DORotate(initialRotation.eulerAngles, dealDuration / 2));
+      return sequence;
     }
 
     // 计算卡牌位置的辅助方法

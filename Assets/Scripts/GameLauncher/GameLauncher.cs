@@ -1,10 +1,15 @@
+using System.Collections;
+using System.Collections.Generic;
 using QAssetBundle;
 using QFramework;
 using UnityEngine;
 
 namespace Battlegrounds
 {
-  public class GameMainProcess : MonoSingleton<GameMainProcess>, IController
+  /// <summary>
+  /// 游戏入口
+  /// </summary>
+  public class GameLauncher : MonoBehaviour, IController
   {
     private ITableLoader mTableLoader;
     public static readonly string[] LubanTableNames = new string[]
@@ -33,6 +38,10 @@ namespace Battlegrounds
     }
     private void Awake()
     {
+      gameObject.name = "[GameLauncher]";
+      DontDestroyOnLoad(this);
+      UIKit.Root.SetResolution(2560, 1440, 1);
+
       ResKit.Init();
     }
 
@@ -94,7 +103,7 @@ namespace Battlegrounds
       FSM.OnGUI();
     }
 
-    protected override void OnDestroy()
+    private void OnDestroy()
     {
       FSM.Clear();
     }
@@ -104,5 +113,4 @@ namespace Battlegrounds
       return Battlegrounds.Interface;
     }
   }
-
 }

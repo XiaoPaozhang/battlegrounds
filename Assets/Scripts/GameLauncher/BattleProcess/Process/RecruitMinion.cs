@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using QFramework;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace Battlegrounds
@@ -24,15 +25,14 @@ namespace Battlegrounds
 
       // 计算要抽取的数量
       int drawCount = battleModel.CalculateShopDrawMinionCount();
-      MinionCardData[] minionCardDatas = this.GetModel<IDeckModel>().DrawCards<MinionCardData>(drawCount);
-
-      // 添加商品到商店中,并返回商品列表
-      List<IMinionData> goods = this.GetModel<IShopModel>().UpdateGoods(minionCardDatas);
-
-      UIKit.OpenPanel<ShopInfoPanel>(new ShopInfoPanelData()
+      IMinionCardData[] minionCardDatas = this.GetModel<IDeckModel>().DrawCards<IMinionCardData>(drawCount);
+      foreach (var minionCardData in minionCardDatas)
       {
-        goodsMinionDatas = goods
-      });
+        // 添加商品到商店中,并返回商品列表
+        this.GetModel<IShopModel>().Goods.Add(new MinionData(minionCardData, IMinionData.UiType.Shop));
+      }
+
+      UIKit.OpenPanel<ShopInfoPanel>(new ShopInfoPanelData());
     }
 
     public IArchitecture GetArchitecture()

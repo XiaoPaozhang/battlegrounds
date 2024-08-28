@@ -7,6 +7,8 @@ using System;
 using System.Collections.Specialized;
 using Unity.VisualScripting;
 using UnityEngine.Networking;
+using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace Battlegrounds
 {
@@ -31,6 +33,7 @@ namespace Battlegrounds
       playerInfoData.CurrentMp.RegisterWithInitValue(UpdateCurrentMp).UnRegisterWhenGameObjectDestroyed(this);
       playerInfoData.MaxMp.RegisterWithInitValue(UpdateMaxMp).UnRegisterWhenGameObjectDestroyed(this);
       playerInfoData.HandCards.CollectionChanged += OnHandCardsChanged;
+
       //监听ui交互
       turnBtn.onClick.AddListener(TurnBtnClick);
       //监听拖拽事件
@@ -40,6 +43,7 @@ namespace Battlegrounds
     //手牌变更事件
     private void OnHandCardsChanged(object sender, NotifyCollectionChangedEventArgs e)
     {
+      "玩家卡牌数据变更".LogInfo();
       switch (e.Action)
       {
         case NotifyCollectionChangedAction.Add:
@@ -90,8 +94,14 @@ namespace Battlegrounds
         // 获取卡牌配置表数据
         cfg.Card card = this.GetUtility<ITableLoader>().Tables.TbCard.Get(@event.MinionData.Id);
         MinionCardData minionCardData = new MinionCardData(card);
+
         //将随从加入手牌
-        this.GetModel<IPlayerInfoModel>().AddHandCard(minionCardData, playerInfoData.Id);
+        this.GetModel<IPlayerInfoModel>().PlayerInfos[playerInfoData.Id].HandCards.Add(minionCardData);
+
+        //删除商店商品随从
+        ObservableCollection<IMinionData> Goods = this.GetModel<IShopModel>().Goods;
+        var goodToRemove = Goods.First(good => good.Id == @event.MinionData.Id);
+        if (goodToRemove != null) Goods.Remove(goodToRemove);
 
         //销毁拖拽随从
         Destroy(@event.MinionUIItem.gameObject);
@@ -103,12 +113,12 @@ namespace Battlegrounds
       };
     }
     //放置随从
-    public void PlaceMinion(List<IMinionCardData> minionCardData)
+    public void PlaceMinion(List<IMinionData> minionCardData)
     {
-      List<IMinionData> minionDatas = new List<IMinionData>();
+      ObservableCollection<IMinionData> minionDatas = new ObservableCollection<IMinionData>();
       for (int i = 0; i < minionCardData.Count; i++)
       {
-        minionDatas.Add(new MinionData(minionCardData[i]));
+        minionDatas.Add(minionCardData[i]);
       }
       MinionSlot.UpdateMinionSlot(minionDatas);
     }
@@ -126,6 +136,7 @@ namespace Battlegrounds
 
     protected override void OnClose()
     {
+      playerInfoData.HandCards.CollectionChanged -= OnHandCardsChanged;
     }
     private void UpdateCurrentHpText(int value)
     {
@@ -160,11 +171,6 @@ namespace Battlegrounds
       //隐藏法力值显示
       ManaSlot.gameObject.SetActive(false);
       manaTxt.gameObject.SetActive(false);
-    }
-
-    private new void OnDestroy()
-    {
-      playerInfoData.HandCards.CollectionChanged -= OnHandCardsChanged;
     }
 
     public IArchitecture GetArchitecture()

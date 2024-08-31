@@ -10,5 +10,17 @@ namespace Battlegrounds
     public Fighting(FSM<BattleProcess.States> fsm, BattleProcess target) : base(fsm, target)
     {
     }
+    protected override void OnEnter()
+    {
+      base.OnEnter();
+
+      UIKit.OpenPanel<EnemyInfoPanel>();
+    }
+
+    protected override void OnExit()
+    {
+      base.OnExit();
+      UIKit.ClosePanel<EnemyInfoPanel>();
+    }
   }
 }

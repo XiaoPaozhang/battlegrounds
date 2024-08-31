@@ -23,6 +23,7 @@ namespace Battlegrounds
     private bool IsEnoughCost;
     private bool IsPlayerMinion;
     private bool IsBelongsToShop;
+    private bool IsRecruitMinionProcess;//是否是招募随从流程
     private void Awake()
     {
     }
@@ -66,6 +67,9 @@ namespace Battlegrounds
 
     public void OnBeginDrag(PointerEventData eventData)
     {
+      IsRecruitMinionProcess = this.GetModel<IBattleModel>().Fsm.CurrentStateId == BattleProcess.States.RecruitMinion;
+      if (!IsRecruitMinionProcess) return;
+
       // 是否为玩家的随从
       IsPlayerMinion = _minionData.BelongsTo == IMinionData.UiType.Player;
       //是否是商店拿出的随从
@@ -88,6 +92,7 @@ namespace Battlegrounds
     public void OnDrag(PointerEventData eventData)
     {
       if (IsBelongsToShop && !IsEnoughCost) return;
+      if (!IsRecruitMinionProcess) return;
 
       //拖拽
       Vector3 mousePosition = eventData.position;
@@ -97,6 +102,7 @@ namespace Battlegrounds
     public void OnEndDrag(PointerEventData eventData)
     {
       if (IsBelongsToShop && !IsEnoughCost) return;
+      if (!IsRecruitMinionProcess) return;
 
       // 检查是否拖拽到了目标区域
       CheckForDropTarget(eventData, _minionData, siblingIndex);

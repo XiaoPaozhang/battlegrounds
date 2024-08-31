@@ -10,6 +10,7 @@ namespace Battlegrounds
     FSM<BattleProcess.States> Fsm { get; set; }
     int TurnCount { get; set; }
     public int PlayerId { get; set; }
+    public int EnemyId { get; set; }
     int CalculateShopDrawMinionCount();
   }
   public class BattleModel : AbstractModel, IBattleModel
@@ -17,11 +18,7 @@ namespace Battlegrounds
     public FSM<BattleProcess.States> Fsm { get; set; }
     public int TurnCount { get; set; }
     public int PlayerId { get; set; }
-    protected override void OnInit()
-    {
-      Fsm = new FSM<BattleProcess.States>();
-    }
-
+    public int EnemyId { get; set; }
     /// <summary>
     /// 计算商店抽取的随从数量
     /// </summary>
@@ -30,6 +27,11 @@ namespace Battlegrounds
     {
       // 计算抽取数量,抽取数量为初始回合为3, 每个第四回合+1
       return 3 + TurnCount / 4;
+    }
+
+    protected override void OnInit()
+    {
+
     }
   }
 

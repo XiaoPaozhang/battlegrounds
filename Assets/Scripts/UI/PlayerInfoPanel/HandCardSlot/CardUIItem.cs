@@ -18,6 +18,7 @@ namespace Battlegrounds
     private int siblingIndex;
     private IBaseCardData baseCardData;
     private Transform parentTf;
+    private bool IsRecruitMinionProcess;//是否是招募随从流程
 
     private void Awake()
     {
@@ -68,8 +69,7 @@ namespace Battlegrounds
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-      borderLine.color = Color.green;
-
+      IsRecruitMinionProcess = this.GetModel<IBattleModel>().Fsm.CurrentStateId == BattleProcess.States.RecruitMinion;
       // 如果已经有动画正在运行，则先清除
       // if (tweenSequence != null && tweenSequence.IsPlaying())
       // {
@@ -84,12 +84,13 @@ namespace Battlegrounds
       Sequence tweenSequence = DOTween.Sequence();
       // 放大动画
       tweenSequence.Append(rectTransform.DOScale(1.5f, 0.15f));
+
+      if (!IsRecruitMinionProcess) return;
+      borderLine.color = Color.green;
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
-      borderLine.color = Color.white;
-
       // 如果已经有动画正在运行，则先清除
       // if (tweenSequence != null && tweenSequence.IsPlaying())
       // {
@@ -103,13 +104,17 @@ namespace Battlegrounds
       // 恢复原始大小
       tweenSequence.Append(rectTransform.DOScale(1f, 0.25f));
 
+      if (!IsRecruitMinionProcess) return;
+      borderLine.color = Color.white;
     }
 
     public void OnBeginDrag(PointerEventData eventData)
     {
+      if (!IsRecruitMinionProcess) return;
+
       parentTf = transform.parent;
 
-      if (baseCardData is IMinionCardData minionCardData)
+      if (baseCardData is IMinionCardData)
       {
         Transform dragPanelTf = UIKit.GetPanel<DragPanel>().transform;
         transform.SetParent(dragPanelTf);
@@ -119,6 +124,8 @@ namespace Battlegrounds
     }
     public void OnDrag(PointerEventData eventData)
     {
+      if (!IsRecruitMinionProcess) return;
+
       //拖拽
       Vector3 mousePosition = eventData.position;
       mousePosition = this.GetUtility<IScreenUtils>().ClampToScreenBounds(mousePosition);
@@ -126,6 +133,8 @@ namespace Battlegrounds
     }
     public void OnEndDrag(PointerEventData eventData)
     {
+      if (!IsRecruitMinionProcess) return;
+
       CheckForDropTarget(eventData, baseCardData);
     }
 

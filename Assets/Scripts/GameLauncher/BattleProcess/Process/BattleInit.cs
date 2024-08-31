@@ -19,11 +19,12 @@ namespace Battlegrounds
 
       //初始化战斗数据
       this.GetModel<IBattleModel>().PlayerId = 30001;
+      this.GetModel<IBattleModel>().EnemyId = 30002;
       //创建玩家信息
-      IPlayerInfo playerInfoData = this.GetModel<IPlayerInfoModel>()
-                                       .CreatePlayerInfo(this.GetModel<IBattleModel>().PlayerId);
-      // IPlayerInfo enemyInfoData = this.GetModel<IPlayerInfoModel>()
-      //                                 .CreatePlayerInfo(30002);
+      this.GetModel<IPlayerInfoModel>()
+          .CreatePlayerInfo(this.GetModel<IBattleModel>().PlayerId);
+      this.GetModel<IPlayerInfoModel>()
+          .CreatePlayerInfo(this.GetModel<IBattleModel>().EnemyId);
 
       //初始化牌库,塞入1星牌,洗牌
       this.GetModel<IDeckModel>()
@@ -37,8 +38,7 @@ namespace Battlegrounds
       //打开ui面板
       UIKit.OpenPanel<AnimeImageBackGround>();
       UIKit.OpenPanel<DragPanel>(UILevel.PopUI);
-      UIKit.OpenPanel<PlayerInfoPanel>(new PlayerInfoPanelData() { PlayerInfo = playerInfoData, });
-      // UIKit.OpenPanel<EnemyInfoPanel>(new EnemyInfoPanelData() { PlayerInfo = enemyInfoData, });
+      UIKit.OpenPanel<PlayerInfoPanel>(new PlayerInfoPanelData());
 
       //切换到招募阶段
       mFsm.ChangeState(BattleProcess.States.RecruitMinion);

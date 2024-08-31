@@ -7,15 +7,14 @@ namespace Battlegrounds
 {
   public class EnemyInfoPanelData : UIPanelData
   {
-    public IPlayerInfo PlayerInfo { get; set; }
   }
-  public partial class EnemyInfoPanel : UIPanel
+  public partial class EnemyInfoPanel : UIPanel, IController
   {
     private IPlayerInfo enemyInfo;
     protected override void OnInit(IUIData uiData = null)
     {
       mData = uiData as EnemyInfoPanelData ?? new EnemyInfoPanelData();
-      enemyInfo = mData.PlayerInfo;
+      enemyInfo = this.GetModel<IPlayerInfoModel>().PlayerInfos[this.GetModel<IBattleModel>().EnemyId];
 
       enemyInfo.CurrentHp.RegisterWithInitValue(OnCurrentHpChanged).UnRegisterWhenGameObjectDestroyed(this);
     }
@@ -39,6 +38,11 @@ namespace Battlegrounds
 
     protected override void OnClose()
     {
+    }
+
+    public IArchitecture GetArchitecture()
+    {
+      return Battlegrounds.Interface;
     }
   }
 }

@@ -1,6 +1,5 @@
 using UnityEngine;
 using QFramework;
-using System;
 
 namespace Battlegrounds
 {
@@ -8,9 +7,10 @@ namespace Battlegrounds
   /// 战斗流程
   /// </summary>
   [MonoSingletonPath("[GameLauncher]/[BattleProcess]")]
-  public class BattleProcess : MonoSingleton<BattleProcess>
+  public class BattleProcess : MonoSingleton<BattleProcess>, IController
   {
-    public FSM<States> FSM = new FSM<States>();
+    public FSM<States> FSM;
+    [SerializeField] private States CurrentState;
     public enum States
     {
       /// <summary>
@@ -29,7 +29,9 @@ namespace Battlegrounds
 
     public void Awake()
     {
-
+      // 初始化 FSM
+      this.GetModel<IBattleModel>().Fsm = new FSM<States>();
+      FSM = this.GetModel<IBattleModel>().Fsm;
       FSM.AddState(States.BattleInit, new BattleInit(FSM, this));
       FSM.AddState(States.RecruitMinion, new RecruitMinion(FSM, this));
       FSM.AddState(States.Fighting, new Fighting(FSM, this));
@@ -41,6 +43,7 @@ namespace Battlegrounds
     private void Update()
     {
       FSM.Update();
+      CurrentState = FSM.CurrentStateId;
     }
 
     private void FixedUpdate()
@@ -63,6 +66,11 @@ namespace Battlegrounds
     {
       Destroy(this);
       Destroy(this.gameObject);
+    }
+
+    public IArchitecture GetArchitecture()
+    {
+      return Battlegrounds.Interface;
     }
   }
 }

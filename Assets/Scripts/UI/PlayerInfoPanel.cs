@@ -1,20 +1,14 @@
 using UnityEngine;
-using UnityEngine.UI;
 using QFramework;
 using System.Collections.Generic;
-using DG.Tweening;
-using System;
 using System.Collections.Specialized;
-using Unity.VisualScripting;
-using UnityEngine.Networking;
 using System.Collections.ObjectModel;
-using System.Linq;
+using static Battlegrounds.BattleProcess;
 
 namespace Battlegrounds
 {
   public class PlayerInfoPanelData : UIPanelData
   {
-    public IPlayerInfo PlayerInfo;
   }
   public partial class PlayerInfoPanel : UIPanel, IController
   {
@@ -25,7 +19,7 @@ namespace Battlegrounds
     protected override void OnInit(IUIData uiData = null)
     {
       mData = uiData as PlayerInfoPanelData ?? new PlayerInfoPanelData();
-      playerInfoData = mData.PlayerInfo;
+      playerInfoData = this.GetModel<IPlayerInfoModel>().PlayerInfos[this.GetModel<IBattleModel>().PlayerId];
 
       // 监听数据变化 更新UI
       playerInfoData.CurrentHp.RegisterWithInitValue(UpdateCurrentHpText).UnRegisterWhenGameObjectDestroyed(this);
@@ -122,9 +116,20 @@ namespace Battlegrounds
     //回合结束按钮点击事件
     private void TurnBtnClick()
     {
-      //隐藏法力值显示
-      ManaSlot.gameObject.SetActive(false);
-      manaTxt.gameObject.SetActive(false);
+      var fsm = this.GetModel<IBattleModel>().Fsm;
+      fsm.ChangeState(States.Fighting);
+    }
+
+
+    /// <summary>
+    /// 法力值显示
+    /// </summary>
+    /// <param name="isDisable">是否显示</param>
+    public void SetManaDisplayDisable(bool isDisable)
+    {
+      ManaSlot.gameObject.SetActive(isDisable);
+      manaTxt.gameObject.SetActive(isDisable);
+      turnBtn.gameObject.SetActive(isDisable);
     }
 
     public IArchitecture GetArchitecture()

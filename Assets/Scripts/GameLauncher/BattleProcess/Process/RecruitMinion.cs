@@ -17,8 +17,8 @@ namespace Battlegrounds
     protected override void OnEnter()
     {
       base.OnEnter();
+      // "招募阶段".LogInfo();
       battleModel = this.GetModel<IBattleModel>();
-      "招募阶段".LogInfo();
 
       //回合数加一
       battleModel.TurnCount++;
@@ -31,8 +31,17 @@ namespace Battlegrounds
         // 添加商品到商店中,并返回商品列表
         this.GetModel<IShopModel>().Goods.Add(new MinionData(minionCardData, IMinionData.UiType.Shop));
       }
+      UIKit.OpenPanel<ShopInfoPanel>();
+      UIKit.GetPanel<PlayerInfoPanel>().SetManaDisplayDisable(true);
+    }
 
-      UIKit.OpenPanel<ShopInfoPanel>(new ShopInfoPanelData());
+    protected override void OnExit()
+    {
+      base.OnExit();
+
+      //关闭商店面板
+      UIKit.ClosePanel<ShopInfoPanel>();
+      UIKit.GetPanel<PlayerInfoPanel>().SetManaDisplayDisable(false);
     }
 
     public IArchitecture GetArchitecture()

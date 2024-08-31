@@ -7,10 +7,6 @@ using QFramework;
 
 namespace Battlegrounds
 {
-  public struct EventA
-  {
-
-  }
   public interface IShopModel : IModel
   {
     BindableProperty<int> Star { get; }

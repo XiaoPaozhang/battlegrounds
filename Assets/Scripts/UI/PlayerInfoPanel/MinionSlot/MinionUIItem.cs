@@ -18,6 +18,11 @@ namespace Battlegrounds
     private IMinionData _minionData;
     private Transform parentTf;
     private int siblingIndex;
+    private Dictionary<int, IPlayerInfo> playerInfoData;
+    private int playerId;
+    private bool IsEnoughCost;
+    private bool IsPlayerMinion;
+    private bool IsBelongsToShop;
     private void Awake()
     {
     }
@@ -61,6 +66,19 @@ namespace Battlegrounds
 
     public void OnBeginDrag(PointerEventData eventData)
     {
+      // 是否为玩家的随从
+      IsPlayerMinion = _minionData.BelongsTo == IMinionData.UiType.Player;
+      //是否是商店拿出的随从
+      IsBelongsToShop = _minionData.BelongsTo == IMinionData.UiType.Shop;
+      playerInfoData = this.GetModel<IPlayerInfoModel>().PlayerInfos;
+      playerId = this.GetModel<IBattleModel>().PlayerId;
+      //费用是否充足
+      IsEnoughCost = playerInfoData[playerId].CurrentMp.Value >= 3;
+      if (IsBelongsToShop && !IsEnoughCost)
+      {
+        "商店随从购买,费用不足".LogInfo();
+        return;
+      }
       parentTf = transform.parent;
       siblingIndex = transform.GetSiblingIndex();
       Transform dragPanelTf = UIKit.GetPanel<DragPanel>().transform;
@@ -69,6 +87,8 @@ namespace Battlegrounds
     }
     public void OnDrag(PointerEventData eventData)
     {
+      if (IsBelongsToShop && !IsEnoughCost) return;
+
       //拖拽
       Vector3 mousePosition = eventData.position;
       mousePosition = this.GetUtility<IScreenUtils>().ClampToScreenBounds(mousePosition);
@@ -76,6 +96,8 @@ namespace Battlegrounds
     }
     public void OnEndDrag(PointerEventData eventData)
     {
+      if (IsBelongsToShop && !IsEnoughCost) return;
+
       // 检查是否拖拽到了目标区域
       CheckForDropTarget(eventData, _minionData, siblingIndex);
     }
@@ -84,10 +106,9 @@ namespace Battlegrounds
     {
       ShopInfoPanel ShopInfoPanel = UIKit.GetPanel<ShopInfoPanel>();
       PlayerInfoPanel PlayerInfoPanel = UIKit.GetPanel<PlayerInfoPanel>();
-      RectTransform handArea = PlayerInfoPanel.HandCardSlot.transform as RectTransform;
       // 判断是否在可放置区域
       bool AthandArea = RectTransformUtility.RectangleContainsScreenPoint(
-          handArea,
+          PlayerInfoPanel.HandCardSlot.transform as RectTransform,
           @event.position,
           @event.pressEventCamera
           );
@@ -97,13 +118,6 @@ namespace Battlegrounds
           @event.position,
           @event.pressEventCamera
           );
-      // 是否为玩家的随从
-      bool IsPlayerMinion = minionData.BelongsTo == IMinionData.UiType.Player;
-      //是否是商店拿出的随从
-      bool IsBelongsToShop = minionData.BelongsTo == IMinionData.UiType.Shop;
-
-
-
 
       // 如果拖拽到了玩家信息UI，执行生成卡牌操作
       if (IsBelongsToShop && AthandArea)
@@ -112,10 +126,10 @@ namespace Battlegrounds
         cfg.Card card = this.GetUtility<ITableLoader>().Tables.TbCard.Get(minionData.Id);
         MinionCardData minionCardData = new MinionCardData(card);
 
-        var playerInfoData = this.GetModel<IPlayerInfoModel>().PlayerInfos;
         //将随从加入手牌
-        this.GetModel<IPlayerInfoModel>().PlayerInfos[this.GetModel<IBattleModel>().PlayerId].HandCards.Add(minionCardData);
-
+        this.GetModel<IPlayerInfoModel>().AddHandCard(playerId, minionCardData);
+        //减少玩家MP
+        playerInfoData[playerId].CurrentMp.Value -= 3;
         //删除商店商品随从
         ObservableCollection<IMinionData> Goods = this.GetModel<IShopModel>().Goods;
         var goodToRemove = Goods.First(good => good.Id == minionData.Id);
@@ -124,7 +138,6 @@ namespace Battlegrounds
         //销毁拖拽随从
         gameObject.DestroySelf();
       }
-
       // 如果拖拽到了商店垃圾回收的UI，执行购买操作
       else if (IsPlayerMinion && AtRecoveryArea)
       {
@@ -134,6 +147,8 @@ namespace Battlegrounds
         if (MinionsRemove != null) playerInfo.Minions.Remove(MinionsRemove);
 
         gameObject.DestroySelf();
+        //增加玩家MP
+        playerInfoData[playerId].CurrentMp.Value += 1;
       }
       else
       {

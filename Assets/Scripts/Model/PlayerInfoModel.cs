@@ -82,8 +82,8 @@ namespace Battlegrounds
   {
     Dictionary<int, IPlayerInfo> PlayerInfos { get; }
     IPlayerInfo CreatePlayerInfo(int playerId);
-    void AddHandCard(IBaseCardData cardData, int playerId);
-    void AddMinion(IMinionData minionData, int playerId);
+    void AddHandCard(int playerId, IBaseCardData cardData);
+    void AddMinion(int playerId, IMinionData minionData);
   }
 
   public class PlayerInfoModel : AbstractModel, IPlayerInfoModel
@@ -108,12 +108,12 @@ namespace Battlegrounds
       return playerInfoData;
     }
 
-    public void AddHandCard(IBaseCardData cardData, int playerId)
+    public void AddHandCard(int playerId, IBaseCardData cardData)
     {
       PlayerInfos[playerId].HandCards.Add(cardData);
     }
 
-    public void AddMinion(IMinionData minionData, int playerId)
+    public void AddMinion(int playerId, IMinionData minionData)
     {
       PlayerInfos[playerId].Minions.Add(minionData);
     }

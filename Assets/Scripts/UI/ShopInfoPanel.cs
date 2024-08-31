@@ -19,6 +19,8 @@ namespace Battlegrounds
 
   public partial class ShopInfoPanel : UIPanel, IController
   {
+    private Dictionary<int, IPlayerInfo> playerInfoData;
+    private int playerId;
     private List<IMinionData> goodsMinionDatas;
     private IShopModel shopModel;
     private bool isLock;
@@ -27,6 +29,8 @@ namespace Battlegrounds
       mData = uiData as ShopInfoPanelData ?? new ShopInfoPanelData();
       goodsMinionDatas = mData.goodsMinionDatas;
       shopModel = this.GetModel<IShopModel>();
+      playerInfoData = this.GetModel<IPlayerInfoModel>().PlayerInfos;
+      playerId = this.GetModel<IBattleModel>().PlayerId;
 
       shopModel.Star.RegisterWithInitValue(OnStarChanged);
       shopModel.Goods.CollectionChanged += OnGoodsChanged;
@@ -57,12 +61,22 @@ namespace Battlegrounds
 
     private void OnRefreshBtnClick()
     {
+      //费用是否充足
+      bool IsEnoughCost = playerInfoData[playerId].CurrentMp.Value >= 1;
       if (isLock)
       {
         "商店已锁住,无法刷新".LogInfo();
         return;
       }
-      "刷新".LogInfo();
+      else if (!IsEnoughCost)
+      {
+        "费用不足,无法刷新".LogInfo();
+        return;
+      }
+      // "刷新".LogInfo();
+
+      //扣除费用
+      playerInfoData[playerId].CurrentMp.Value -= 1;
 
       // 获取抽取数量
       int drawCount =
@@ -88,10 +102,20 @@ namespace Battlegrounds
 
     private void OnUpgradeBtnClick()
     {
-      "升级".LogInfo();
-      //获取当前星级
-      int star = this.GetModel<IShopModel>().UpgradeStore().Star.Value;
-      this.GetModel<IDeckModel>().PushCardsByMaxStar(star);
+      // "升级".LogInfo();
+
+      //费用是否充足
+      bool IsEnoughCost = playerInfoData[playerId].CurrentMp.Value >= shopModel.UpgradeCost;
+      if (!IsEnoughCost)
+      {
+        "提升商店等级,费用不足".LogInfo();
+        return;
+      }
+      //扣除费用
+      playerInfoData[playerId].CurrentMp.Value -= shopModel.UpgradeCost;
+      //升级商店等级
+      shopModel.UpgradeStore();
+      this.GetModel<IDeckModel>().PushCardsByMaxStar(shopModel.Star.Value);
     }
 
     private void OnStarChanged(int value)

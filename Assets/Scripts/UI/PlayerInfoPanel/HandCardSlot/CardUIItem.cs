@@ -152,7 +152,7 @@ namespace Battlegrounds
       {
         // "放置随从".LogInfo();
         IPlayerInfoModel playerInfoModel = this.GetModel<IPlayerInfoModel>();
-        playerInfoModel.AddMinion(new MinionData(minionCardData, IMinionData.UiType.Player), 30001);
+        playerInfoModel.AddMinion(this.GetModel<IBattleModel>().PlayerId, new MinionData(minionCardData, IMinionData.UiType.Player));
 
         playerInfoPanel.PlaceMinion(playerInfoModel.PlayerInfos[30001].Minions.ToList());
         playerInfoPanel.HandCardSlot.DestroyCard(this);

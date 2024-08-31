@@ -17,9 +17,11 @@ namespace Battlegrounds
 
       "战斗初始化".LogInfo();
 
+      //初始化战斗数据
+      this.GetModel<IBattleModel>().PlayerId = 30001;
       //创建玩家信息
       IPlayerInfo playerInfoData = this.GetModel<IPlayerInfoModel>()
-                                       .CreatePlayerInfo(30001);
+                                       .CreatePlayerInfo(this.GetModel<IBattleModel>().PlayerId);
       // IPlayerInfo enemyInfoData = this.GetModel<IPlayerInfoModel>()
       //                                 .CreatePlayerInfo(30002);
 

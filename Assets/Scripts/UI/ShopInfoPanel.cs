@@ -34,7 +34,6 @@ namespace Battlegrounds
       upgradeBtn.onClick.AddListener(OnUpgradeBtnClick);
       refreshBtn.onClick.AddListener(OnRefreshBtnClick);
       lockBtn.onClick.AddListener(OnLockBtnClick);
-      TypeEventSystem.Global.Register<EndDragMinionEvent>(OnEndDragMinion).UnRegisterWhenGameObjectDestroyed(this);
 
       //摆放随从
       MinionSlot.UpdateMinionSlot(shopModel.Goods);
@@ -43,56 +42,11 @@ namespace Battlegrounds
     private void OnGoodsChanged(object sender, NotifyCollectionChangedEventArgs e)
     {
       if (e.NewItems == null) return;
-      //遍历新值
-      // for (int i = 0; i < e.NewItems.Count; i++)
-      // {
-      // switch (e.Action)
-      // {
-      //   case NotifyCollectionChangedAction.Add:
-      //     LogKit.I($"Item added: {item}");
-      //     break;
-      //   case NotifyCollectionChangedAction.Remove:
-      //     LogKit.I($"Item removed: {item}");
-      //     break;
-      //   case NotifyCollectionChangedAction.Replace:
-      //     LogKit.I($"Item replaced.");
-      //     break;
-      //   case NotifyCollectionChangedAction.Move:
-      //     LogKit.I($"Item moved.");
-      //     break;
-      //   case NotifyCollectionChangedAction.Reset:
-      //     LogKit.I("The collection was reset.");
-      //     break;
-      // }
-      // }
       //摆放随从
       MinionSlot.UpdateMinionSlot((ObservableCollection<IMinionData>)sender);
 
 
     }
-
-    private void OnEndDragMinion(EndDragMinionEvent @event)
-    {
-      //判断是否为玩家的随从
-      bool IsPlayerMinion = @event.MinionData.BelongsTo == IMinionData.UiType.Player;
-      // 判断是否在垃圾回收区域
-      bool AtRecoveryArea = RectTransformUtility.RectangleContainsScreenPoint(
-          recoveryArea,
-          @event.EventData.position,
-          @event.EventData.pressEventCamera
-          );
-
-      if (IsPlayerMinion && AtRecoveryArea)
-      {
-        // "随从卖出".LogInfo();
-        IPlayerInfo playerInfo = this.GetModel<IPlayerInfoModel>().PlayerInfos[30001];
-        var MinionsRemove = playerInfo.Minions.First(minion => minion.Id == @event.MinionData.Id);
-        if (MinionsRemove != null) playerInfo.Minions.Remove(MinionsRemove);
-
-        @event.MinionUIItem.gameObject.DestroySelf();
-      }
-    }
-
     private void OnLockBtnClick()
     {
       "锁住".LogInfo();
@@ -122,7 +76,10 @@ namespace Battlegrounds
           .ShuffleDeck()
           .DrawCards<IMinionCardData>(drawCount);
 
-      //商店添加随从
+      //商店清理随从商品
+      shopModel.Goods.Clear();
+
+      //商店添加刷新后的随从商品
       foreach (IMinionCardData minionCardData in minionCardDatas)
       {
         shopModel.Goods.Add(new MinionData(minionCardData, IMinionData.UiType.Shop));

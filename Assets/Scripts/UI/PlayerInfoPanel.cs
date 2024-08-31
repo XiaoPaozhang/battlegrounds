@@ -36,8 +36,6 @@ namespace Battlegrounds
 
       //监听ui交互
       turnBtn.onClick.AddListener(TurnBtnClick);
-      //监听拖拽事件
-      TypeEventSystem.Global.Register<EndDragMinionEvent>(OnEndDragMinion).UnRegisterWhenGameObjectDestroyed(this);
     }
 
     //手牌变更事件
@@ -67,50 +65,6 @@ namespace Battlegrounds
           LogKit.I("The collection was reset.");
           break;
       }
-    }
-
-    // 结束拖拽随从事件
-    private void OnEndDragMinion(EndDragMinionEvent @event)
-    {
-      if (@event.MinionData == null)
-      {
-        "拖拽的随从数据为空".LogError();
-        return;
-      }
-
-      //是否是商店拿出的卡
-      bool IsBelongsToShop = @event.MinionData.BelongsTo == IMinionData.UiType.Shop;
-
-      RectTransform handArea = HandCardSlot.transform as RectTransform;
-      // 判断是否在可放置区域
-      bool isSuccess = RectTransformUtility.RectangleContainsScreenPoint(
-          handArea,
-          @event.EventData.position,
-          @event.EventData.pressEventCamera
-          );
-
-      if (IsBelongsToShop && isSuccess)
-      {
-        // 获取卡牌配置表数据
-        cfg.Card card = this.GetUtility<ITableLoader>().Tables.TbCard.Get(@event.MinionData.Id);
-        MinionCardData minionCardData = new MinionCardData(card);
-
-        //将随从加入手牌
-        this.GetModel<IPlayerInfoModel>().PlayerInfos[playerInfoData.Id].HandCards.Add(minionCardData);
-
-        //删除商店商品随从
-        ObservableCollection<IMinionData> Goods = this.GetModel<IShopModel>().Goods;
-        var goodToRemove = Goods.First(good => good.Id == @event.MinionData.Id);
-        if (goodToRemove != null) Goods.Remove(goodToRemove);
-
-        //销毁拖拽随从
-        Destroy(@event.MinionUIItem.gameObject);
-      }
-      else
-      {
-        // 卡牌不在可放置区域, 回到原来的位置
-        @event.MinionUIItem.gameObject.Parent(@event.ParentTf);
-      };
     }
     //放置随从
     public void PlaceMinion(List<IMinionData> minionCardData)

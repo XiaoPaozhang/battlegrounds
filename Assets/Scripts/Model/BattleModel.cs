@@ -9,12 +9,14 @@ namespace Battlegrounds
   {
     FSM<BattleProcess.States> Fsm { get; set; }
     int TurnCount { get; set; }
+    public int PlayerId { get; set; }
     int CalculateShopDrawMinionCount();
   }
   public class BattleModel : AbstractModel, IBattleModel
   {
     public FSM<BattleProcess.States> Fsm { get; set; }
     public int TurnCount { get; set; }
+    public int PlayerId { get; set; }
     protected override void OnInit()
     {
       Fsm = new FSM<BattleProcess.States>();
@@ -30,4 +32,5 @@ namespace Battlegrounds
       return 3 + TurnCount / 4;
     }
   }
+
 }

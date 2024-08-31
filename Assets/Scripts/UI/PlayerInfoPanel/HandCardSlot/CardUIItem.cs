@@ -3,6 +3,7 @@
  ****************************************************************************/
 
 using System;
+using System.Linq;
 using DG.Tweening;
 using QFramework;
 using UnityEngine;
@@ -11,10 +12,10 @@ using UnityEngine.EventSystems;
 namespace Battlegrounds
 {
   public partial class CardUIItem : UIElement
-  , IPointerEnterHandler, IPointerExitHandler, IDragHandler, IBeginDragHandler, IEndDragHandler
+  , IPointerEnterHandler, IPointerExitHandler, IDragHandler, IBeginDragHandler, IEndDragHandler, IController
   {
     private RectTransform rectTransform;
-    private int _index;
+    private int siblingIndex;
     private IBaseCardData baseCardData;
     private Transform parentTf;
 
@@ -76,7 +77,7 @@ namespace Battlegrounds
       // }
 
       //记录当前的渲染顺序
-      _index = transform.GetSiblingIndex();
+      siblingIndex = transform.GetSiblingIndex();
       // 设置渲染模式为置顶
       rectTransform.SetAsLastSibling();
       // 创建一个新的动画序列
@@ -96,7 +97,7 @@ namespace Battlegrounds
       // }
 
       // 恢复正常的渲染顺序
-      rectTransform.SetSiblingIndex(_index);
+      rectTransform.SetSiblingIndex(siblingIndex);
       // 创建一个新的动画序列
       Sequence tweenSequence = DOTween.Sequence();
       // 恢复原始大小
@@ -113,23 +114,70 @@ namespace Battlegrounds
         Transform dragPanelTf = UIKit.GetPanel<DragPanel>().transform;
         transform.SetParent(dragPanelTf);
         transform.position = Input.mousePosition;
+
       }
     }
     public void OnDrag(PointerEventData eventData)
     {
       //拖拽
-      transform.position = Input.mousePosition;
+      Vector3 mousePosition = eventData.position;
+      mousePosition = this.GetUtility<IScreenUtils>().ClampToScreenBounds(mousePosition);
+      transform.position = mousePosition;
     }
     public void OnEndDrag(PointerEventData eventData)
     {
-      TypeEventSystem.Global.Send(new EndDragCardEvent(
-        eventData,
-        baseCardData,
-        this,
-        parentTf
-        ));
+      CheckForDropTarget(eventData, baseCardData);
     }
 
+    private void CheckForDropTarget(PointerEventData @event, IBaseCardData baseCardData)
+    {
+      PlayerInfoPanel playerInfoPanel = UIKit.GetPanel<PlayerInfoPanel>();
+
+      RectTransform handArea = playerInfoPanel.HandCardSlot.transform as RectTransform;
+      RectTransform minionArea = playerInfoPanel.MinionSlot.transform as RectTransform;
+      // 判断是否在手牌区域
+      bool AtHandArea = RectTransformUtility.RectangleContainsScreenPoint(
+          handArea,
+          @event.position,
+          @event.pressEventCamera
+          );
+      // 判断是否在随从可放置区域
+      bool AtMinionArea = RectTransformUtility.RectangleContainsScreenPoint(
+          minionArea,
+          @event.position,
+          @event.pressEventCamera
+          );
+      // 如果拖拽的是随从卡,且拖拽至随从区
+      if (baseCardData is IMinionCardData minionCardData && AtMinionArea)
+      {
+        // "放置随从".LogInfo();
+        IPlayerInfoModel playerInfoModel = this.GetModel<IPlayerInfoModel>();
+        playerInfoModel.AddMinion(new MinionData(minionCardData, IMinionData.UiType.Player), 30001);
+
+        playerInfoPanel.PlaceMinion(playerInfoModel.PlayerInfos[30001].Minions.ToList());
+        playerInfoPanel.HandCardSlot.DestroyCard(this);
+
+        playerInfoPanel.HandCardSlot.DealCard(gameObject, false);
+      }
+      // 如果拖拽的是法术卡,且拖拽至手牌区外
+      else if (baseCardData is ISpellCardData && !AtHandArea)
+      {
+        //拖拽到手牌区域外
+        if (!AtHandArea)
+        {
+          "放置法术".LogInfo();
+        }
+      }
+      else
+      {
+        // "卡牌归位".LogInfo();
+
+        // 卡牌不在可放置区域, 回到原来的位置
+        transform.Parent(parentTf);
+        transform.SetSiblingIndex(siblingIndex);
+        playerInfoPanel.HandCardSlot.DealCard(gameObject, false);
+      }
+    }
 
     protected override void OnBeforeDestroy()
     {
@@ -138,6 +186,11 @@ namespace Battlegrounds
       // {
       //   tweenSequence.Kill();
       // }
+    }
+
+    public IArchitecture GetArchitecture()
+    {
+      return Battlegrounds.Interface;
     }
   }
 }

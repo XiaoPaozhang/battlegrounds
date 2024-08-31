@@ -17,6 +17,7 @@ namespace Battlegrounds
       this.RegisterModel<IPlayerInfoModel>(new PlayerInfoModel());
       this.RegisterModel<IShopModel>(new ShopModel());
 
+      this.RegisterUtility<IScreenUtils>(new ScreenUtils());
       this.RegisterUtility<ITableLoader>(new LubanTableLoader());
     }
   }

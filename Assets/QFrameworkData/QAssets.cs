@@ -11,10 +11,20 @@
 namespace QAssetBundle
 {
     
+    public class Animeimagebackground_prefab
+    {
+        public const string BundleName = "animeimagebackground_prefab";
+        public const string ANIMEIMAGEBACKGROUND = "AnimeImageBackGround";
+    }
     public class Carduiitem_prefab
     {
         public const string BundleName = "carduiitem_prefab";
         public const string CARDUIITEM = "CardUIItem";
+    }
+    public class Dragpanel_prefab
+    {
+        public const string BundleName = "dragpanel_prefab";
+        public const string DRAGPANEL = "DragPanel";
     }
     public class Enemyinfopanel_prefab
     {
@@ -29,9 +39,24 @@ namespace QAssetBundle
     public class Lubantables
     {
         public const string BundleName = "lubantables";
-        public const string CARD_TBCARD = "card_tbcard";
-        public const string PLAYER_INFO_TBPLAYERINFO = "player_info_tbplayerinfo";
-        public const string SHOP_TBSHOP = "shop_tbshop";
+        public const string TBCARD = "tbcard";
+        public const string TBPLAYERINFO = "tbplayerinfo";
+        public const string TBSHOP = "tbshop";
+        public const string CARD = "Card";
+        public const string EQUALITY = "EQuality";
+        public const string ITEMEXCHANGE = "ItemExchange";
+        public const string PLAYERINFO = "PlayerInfo";
+        public const string SHOP = "Shop";
+        public const string TABLES = "Tables";
+        public const string ACCESSFLAG = "AccessFlag";
+        public const string CIRCLE = "Circle";
+        public const string RECTANGLE = "Rectangle";
+        public const string SHAPE = "Shape";
+        public const string TESTEXCELBEAN1 = "TestExcelBean1";
+        public const string TESTEXCELBEAN2 = "TestExcelBean2";
+        public const string VECTOR2 = "vector2";
+        public const string VECTOR3 = "vector3";
+        public const string VECTOR4 = "vector4";
     }
     public class Minionuiitem_prefab
     {

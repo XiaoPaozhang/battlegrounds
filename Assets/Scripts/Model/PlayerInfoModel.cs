@@ -18,7 +18,7 @@ namespace Battlegrounds
     ObservableCollection<IMinionData> Minions { get; }
   }
 
-  public class PlayerInfoData : IPlayerInfo, ICanGetUtility
+  public class PlayerInfoData : IPlayerInfo
   {
     // 编号
     public int Id { get; }
@@ -37,13 +37,19 @@ namespace Battlegrounds
     // 场地上的随从
     public ObservableCollection<IMinionData> Minions { get; } = new ObservableCollection<IMinionData>();
 
-    public PlayerInfoData(int playerId = 30001)
+    public PlayerInfoData(cfg.PlayerInfo playerInfo)
     {
-      Id = playerId;
-      CurrentHp.Register(OnCurrentHpChanged);
-      MaxHp.Register(OnMaxHpChanged);
-      CurrentMp.Register(OnCurrentMpChanged);
-      MaxMp.Register(OnMaxMpChanged);
+      CurrentHp.RegisterWithInitValue(OnCurrentHpChanged);
+      MaxHp.RegisterWithInitValue(OnMaxHpChanged);
+      CurrentMp.RegisterWithInitValue(OnCurrentMpChanged);
+      MaxMp.RegisterWithInitValue(OnMaxMpChanged);
+
+      Id = playerInfo.Id;
+      MaxHp.Value = playerInfo.Hp;
+      MaxMp.Value = playerInfo.Mp;
+      CurrentHp.Value = playerInfo.Hp;
+      CurrentMp.Value = playerInfo.Mp;
+      Star.Value = playerInfo.Star;
     }
 
     private void OnCurrentHpChanged(int newValue)
@@ -71,51 +77,39 @@ namespace Battlegrounds
         CurrentMp.Value = newValue;
       }
     }
-
-    public IArchitecture GetArchitecture()
-    {
-      return Battlegrounds.Interface;
-    }
   }
 
   public interface IPlayerInfoModel : IModel
   {
     Dictionary<int, IPlayerInfo> PlayerInfos { get; }
     IPlayerInfo CreatePlayerInfo(int playerId);
-    void AddHandCard(int playerId, IBaseCardData cardData);
-    void AddMinion(int playerId, IMinionData minionData);
+    IPlayerInfo GetPlayerInfo(int playerId);
   }
 
   public class PlayerInfoModel : AbstractModel, IPlayerInfoModel
   {
-    public Dictionary<int, IPlayerInfo> PlayerInfos { get; set; }
-    protected override void OnInit()
-    {
-      PlayerInfos = new Dictionary<int, IPlayerInfo>();
-    }
-
-
+    public Dictionary<int, IPlayerInfo> PlayerInfos { get; set; } = new Dictionary<int, IPlayerInfo>();
     public IPlayerInfo CreatePlayerInfo(int playerId)
     {
-      var playerInfo = this.GetUtility<ITableLoader>().Tables.TbPlayerInfo.Get(playerId);
-      var playerInfoData = new PlayerInfoData(playerId);
-      playerInfoData.MaxHp.Value = playerInfo.Hp;
-      playerInfoData.MaxMp.Value = playerInfo.Mp;
-      playerInfoData.CurrentHp.Value = playerInfo.Hp;
-      playerInfoData.CurrentMp.Value = playerInfo.Mp;
-      playerInfoData.Star.Value = playerInfo.Star;
+      cfg.PlayerInfo playerInfo = this.GetUtility<ITableLoader>().Tables.TbPlayerInfo.Get(playerId);
+      var playerInfoData = new PlayerInfoData(playerInfo);
       PlayerInfos.Add(playerInfoData.Id, playerInfoData);
       return playerInfoData;
     }
 
-    public void AddHandCard(int playerId, IBaseCardData cardData)
+    public IPlayerInfo GetPlayerInfo(int playerId)
     {
-      PlayerInfos[playerId].HandCards.Add(cardData);
+      if (!PlayerInfos.ContainsKey(playerId))
+      {
+        $"不存在的玩家id: {playerId}".LogWarning();
+        return null;
+      }
+      return PlayerInfos[playerId];
     }
 
-    public void AddMinion(int playerId, IMinionData minionData)
+    protected override void OnInit()
     {
-      PlayerInfos[playerId].Minions.Add(minionData);
+
     }
   }
 }

@@ -13,9 +13,9 @@ namespace Battlegrounds
     private ITableLoader mTableLoader;
     public static readonly string[] LubanTableNames = new string[]
     {
-      Lubantables.CARD_TBCARD,
-      Lubantables.PLAYER_INFO_TBPLAYERINFO,
-      Lubantables.SHOP_TBSHOP,
+      Lubantables.TBCARD,
+      Lubantables.TBPLAYERINFO,
+      Lubantables.TBSHOP,
     };
     [SerializeField] private States CurrentState;
     private BattleProcess battleProcess;

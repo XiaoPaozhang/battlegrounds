@@ -14,15 +14,15 @@ namespace cfg
 {
 public partial class Tables
 {
-    public card.TbCard TbCard {get; }
-    public player_info.TbPlayerInfo TbPlayerInfo {get; }
-    public shop.TbShop TbShop {get; }
+    public TbCard TbCard {get; }
+    public TbPlayerInfo TbPlayerInfo {get; }
+    public TbShop TbShop {get; }
 
     public Tables(System.Func<string, JSONNode> loader)
     {
-        TbCard = new card.TbCard(loader("card_tbcard"));
-        TbPlayerInfo = new player_info.TbPlayerInfo(loader("player_info_tbplayerinfo"));
-        TbShop = new shop.TbShop(loader("shop_tbshop"));
+        TbCard = new TbCard(loader("tbcard"));
+        TbPlayerInfo = new TbPlayerInfo(loader("tbplayerinfo"));
+        TbShop = new TbShop(loader("tbshop"));
         ResolveRef();
     }
     

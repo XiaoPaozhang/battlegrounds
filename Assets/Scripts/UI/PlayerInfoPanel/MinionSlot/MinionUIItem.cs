@@ -133,7 +133,7 @@ namespace Battlegrounds
         MinionCardData minionCardData = new MinionCardData(card);
 
         //将随从加入手牌
-        this.GetModel<IPlayerInfoModel>().AddHandCard(playerId, minionCardData);
+        this.GetModel<IPlayerInfoModel>().GetPlayerInfo(playerId).HandCards.Add(minionCardData);
         //减少玩家MP
         playerInfoData[playerId].CurrentMp.Value -= 3;
         //删除商店商品随从

@@ -1,6 +1,4 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
+
 using System.Collections.ObjectModel;
 using cfg;
 using QFramework;
@@ -21,7 +19,7 @@ namespace Battlegrounds
   public class ShopModel : AbstractModel, IShopModel
   {
     private bool _isInitialized = false;
-    private cfg.shop.TbShop _tbShop;//商店数据表
+    private TbShop _tbShop;//商店数据表
     public BindableProperty<int> Star { get; private set; } = new BindableProperty<int>(); //星级
     public int RefreshCost { get; private set; } //刷新所需要的金币数量
     public int UpgradeCost { get; private set; } //升级所需要的金币数量

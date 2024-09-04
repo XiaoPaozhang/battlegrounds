@@ -161,9 +161,11 @@ namespace Battlegrounds
       {
         // "放置随从".LogInfo();
         IPlayerInfoModel playerInfoModel = this.GetModel<IPlayerInfoModel>();
-        playerInfoModel.AddMinion(this.GetModel<IBattleModel>().PlayerId, new MinionData(minionCardData, IMinionData.UiType.Player));
+        int playerId = this.GetModel<IBattleModel>().PlayerId;
+        MinionData minionData = new MinionData(minionCardData, IMinionData.UiType.Player);
+        playerInfoModel.GetPlayerInfo(playerId).Minions.Add(minionData);
+        playerInfoPanel.PlaceMinion(playerInfoModel.PlayerInfos[playerId].Minions.ToList());
 
-        playerInfoPanel.PlaceMinion(playerInfoModel.PlayerInfos[30001].Minions.ToList());
         playerInfoPanel.HandCardSlot.DestroyCard(this);
 
         playerInfoPanel.HandCardSlot.DealCard(gameObject, false);
